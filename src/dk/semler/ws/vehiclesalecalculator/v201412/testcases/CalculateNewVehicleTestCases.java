@@ -47,10 +47,13 @@ public class CalculateNewVehicleTestCases {
 	private String inputpricecode;
 	private String inputcalculationtype;
 	private String inputtaxcode;
-	private String expectedsalespriceincltagsexclvat;
-	private String expectedsalespriceincltagsinclvat;
-	private String expecteddealermargingexclequipmentexcltagsexclvat;
+	private String expectedsalespriceincltaxexclvat;
+	private String expectedsalespriceincltaxinclvat;
+	private String expecteddealermargingexclequipmentincltaxexclvat;
 	private String expectedtaxexclregulation;
+	private String expectedgrandtotalpriceexclvat;
+	private String expectedgrandtotalpricevat;
+	private String expectedgrandtotalpriceinclvat;
 	
 	private dk.semler.ws.vehiclesalecalculator.v201412.calculatenewvehicle.request.MESSAGE requestMessage;	
 	private dk.semler.ws.vehiclesalecalculator.v201412.calculatenewvehicle.response.MESSAGE responseMessage;
@@ -63,21 +66,27 @@ public class CalculateNewVehicleTestCases {
 			String inputpricecode,                                  
 			String inputcalculationtype,                            
 			String inputtaxcode,                            
-			String expectedsalespriceincltagsexclvat,               
-			String expectedsalespriceincltagsinclvat,               
-			String expecteddealermargingexclequipmentexcltagsexclvat,
-			String expectedtaxexclregulation			
+			String expectedsalespriceincltaxexclvat,               
+			String expectedsalespriceincltaxinclvat,               
+			String expecteddealermargingexclequipmentincltaxexclvat,
+			String expectedtaxexclregulation	,
+			String expectedgrandtotalpriceexclvat,
+	        String expectedgrandtotalpricevat,
+	        String expectedgrandtotalpriceinclvat			
 			){
-				this.inputmodelcode = inputmodelcode;
-				this.inputmodelyear = inputmodelyear;
-				this.inputfactoryequipment = inputfactoryequipment;
-				this.inputpricecode = inputpricecode;                                  
-				this.inputcalculationtype = inputcalculationtype;                            
-				this.inputtaxcode = inputtaxcode;                                  
-				this.expectedsalespriceincltagsexclvat = expecteddealermargingexclequipmentexcltagsexclvat;               
-				this.expectedsalespriceincltagsinclvat = expectedsalespriceincltagsinclvat;               
-				this.expecteddealermargingexclequipmentexcltagsexclvat = expecteddealermargingexclequipmentexcltagsexclvat;
-				this.expectedtaxexclregulation = expectedtaxexclregulation;                       
+		this.inputmodelcode = inputmodelcode;
+		this.inputmodelyear = inputmodelyear;
+		this.inputfactoryequipment = inputfactoryequipment;
+		this.inputpricecode = inputpricecode;                                  
+		this.inputcalculationtype = inputcalculationtype;                            
+		this.inputtaxcode = inputtaxcode;                                  
+		this.expectedsalespriceincltaxexclvat = expectedsalespriceincltaxexclvat;               
+		this.expectedsalespriceincltaxinclvat = expectedsalespriceincltaxinclvat;               
+		this.expecteddealermargingexclequipmentincltaxexclvat = expecteddealermargingexclequipmentincltaxexclvat;
+		this.expectedtaxexclregulation = expectedtaxexclregulation;   
+		this.expectedgrandtotalpriceexclvat = expectedgrandtotalpriceexclvat;
+		this.expectedgrandtotalpricevat = expectedgrandtotalpricevat;
+		this.expectedgrandtotalpriceinclvat = expectedgrandtotalpriceinclvat;                       
 	}
 	
 	//=====================================================
@@ -144,7 +153,7 @@ public class CalculateNewVehicleTestCases {
 		VEHICLEType vehicleType = new VEHICLEType();
 		vehicleType.setMODELCODE(inputmodelcode);
 		vehicleType.setMODELYEAR(Integer.parseInt(inputmodelyear));			
-		vehicleType.setPRICECODE("J01");
+		vehicleType.setPRICECODE(inputpricecode);
 
 		String[] factoryEquipments = inputfactoryequipment.split(Pattern.quote("|"));
 		if(factoryEquipments.length > 0){
@@ -160,9 +169,10 @@ public class CalculateNewVehicleTestCases {
 		request.withECONOMY(economyType);
 
 		CALCULATIONTYPEType calculationType = new CALCULATIONTYPEType();
-		calculationType.setCALCULATIONTYPE("CAR_INCL_VAT_INCL_TAX");
+		calculationType.setCALCULATIONTYPE(inputcalculationtype);
 		calculationType.setEXCLUDEAUTOMATICSEARCHOFSTANDARDEQUIPMENT(true);
 		calculationType.setEXCLUDEAUTOMATICSEARCHOFPLUSPACKAGES(true);
+		calculationType.setTAXCODE(inputtaxcode);
 		request.withCALCULATIONTYPE(calculationType);
 
 		requestMessage = new dk.semler.ws.vehiclesalecalculator.v201412.calculatenewvehicle.request.MESSAGE();
@@ -192,9 +202,21 @@ public class CalculateNewVehicleTestCases {
 	//=====================================================
 
 	@Test
-	public void VehicleTaxRegulationShouldMatch() {
-		assertEquals(new BigDecimal(expectedtaxexclregulation).setScale(2), 
+	public void PassatVanHybridInclTax() {
+		assertEquals("expectedtaxexclregulation",new BigDecimal(expectedtaxexclregulation).setScale(2), 
 				responseMessage.getRESPONSE().getCALCULATION().getTAXEXCLREGULATIONS().setScale(2));
+		assertEquals("",new BigDecimal(expectedsalespriceincltaxexclvat).setScale(2), 
+				responseMessage.getRESPONSE().getCALCULATION().getSALESPRICE().getINCLTAXEXCLVAT().setScale(2));
+		assertEquals(new BigDecimal(expectedsalespriceincltaxinclvat).setScale(2), 
+				responseMessage.getRESPONSE().getCALCULATION().getSALESPRICE().getINCLTAXINCLVAT().setScale(2));
+		assertEquals(new BigDecimal(expecteddealermargingexclequipmentincltaxexclvat).setScale(2), 
+				responseMessage.getRESPONSE().getCALCULATION().getDEALERMARGINEXCLEQUIPMENT().getEXCLTAXEXCLVAT().setScale(2));
+		assertEquals(new BigDecimal(expectedgrandtotalpriceexclvat).setScale(2), 
+				responseMessage.getRESPONSE().getCALCULATION().getGRANDTOTALPRICE().getINCLTAXEXCLVAT().setScale(2));
+		assertEquals(new BigDecimal(expectedgrandtotalpricevat).setScale(2), 
+				responseMessage.getRESPONSE().getCALCULATION().getGRANDTOTALPRICE().getVAT().setScale(2));
+		assertEquals("expectedgrandtotalpriceinclvat",new BigDecimal(expectedgrandtotalpriceinclvat).setScale(2), 
+				responseMessage.getRESPONSE().getCALCULATION().getGRANDTOTALPRICE().getINCLTAXINCLVAT().setScale(2));
 	}
 	
 	//=====================================================
